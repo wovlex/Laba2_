@@ -1,12 +1,21 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Diagnostics;
 using System.IO;
-using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
-
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using System.Xml.Linq;
 namespace Laba2_
 {
     public partial class MainWindow : Window
@@ -15,7 +24,7 @@ namespace Laba2_
         private Enemy currentEnemy;
         private EnemyManager enemyManager;
         private BigNumber baseDamage;
-
+        private CIconList iniicon;
         public MainWindow()
         {
             InitializeComponent();
@@ -110,15 +119,18 @@ namespace Laba2_
 
         private void UpdateEnemyUI()
         {
-            if (currentEnemy != null)
+            if (currentEnemy != null && baseDamage != null)
             {
                 enemyNameText.Text = currentEnemy.Name;
                 enemyHpText.Text = $"{currentEnemy.CurrentHealth} / {currentEnemy.MaxHealth}";
                 enemyGoldText.Text = currentEnemy.GoldReward.ToString();
                 currentDamageText.Text = baseDamage.ToString();
 
-                // Прогресс HP
-                double hpPercent = (double) currentEnemy.CurrentHealth / currentEnemy.MaxHealth;
+                // Прогресс HP - используем ToDouble() для преобразования BigNumber в double
+                double currentHP = currentEnemy.CurrentHealth.ToDouble();
+                double maxHP = currentEnemy.MaxHealth.ToDouble();
+                double hpPercent = currentHP / maxHP;
+
                 enemyHpProgress.Text = $"HP: {currentEnemy.CurrentHealth}/{currentEnemy.MaxHealth} ({(hpPercent * 100):F1}%)";
             }
         }
@@ -169,7 +181,70 @@ namespace Laba2_
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            // Не используется в новой версии
+
+        }
+        private void LoadIcons()
+        {
+            string[] iconNames = { "Sword", "Axe", "Bow", "Staff" };
+            Color[] colors = { Colors.Red, Colors.Blue, Colors.Green, Colors.Orange };
+
+            double x = 10;
+            double y = 10;
+
+            for (int i = 0; i < iconNames.Length; i++)
+            {
+                Image img = new Image
+                {
+                    Width = 50,
+                    Height = 50,
+                    Source = new BitmapImage(new Uri("путь_к_иконке")), // здесь у вас должен быть путь к изображению
+                    Tag = iconNames[i] // сохраняем название
+                };
+                // Создаем прямоугольник как иконку
+                Rectangle icon = new Rectangle
+                {
+                    Width = 50,
+                    Height = 50,
+                    Fill = new SolidColorBrush(colors[i]),
+                    Stroke = Brushes.Black,
+                    StrokeThickness = 2,
+                    Tag = iconNames[i]
+                };
+
+                iniicon = new CIconList(50, 50, 4, 2);
+              
+                  DisplayIcons();
+
+                // Добавляем текст с названием
+                TextBlock text = new TextBlock
+                {
+                    Text = iconNames[i],
+                    Foreground = Brushes.Black,
+                    FontSize = 10,
+                    Width = 50,
+                    TextAlignment = TextAlignment.Center
+                };
+
+                Canvas.SetLeft(text, x);
+                Canvas.SetTop(text, y + 55);
+
+
+
+                // Сдвигаем позицию для следующей иконки
+                x += 60;
+            }
+        }
+        public void DisplayIcons()
+        {
+            var icons = iniicon.GetIcons();
+            foreach (var icon in icons)
+            {
+                Image image = new Image();
+                image.Source = new BitmapImage(new Uri(icon.Path));
+                image.Tag = icon.Name;
+                
+
+            }
         }
     }
 }

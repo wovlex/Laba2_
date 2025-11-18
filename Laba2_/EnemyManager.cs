@@ -1,69 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
-using System.Linq;
 
 namespace Laba2_
 {
     public class EnemyManager
     {
-        private List<CEnemyTemplate> enemyTemplates;
+        private List<Enemy>? enemies;
         private Random random;
 
         public EnemyManager()
         {
-            enemyTemplates = new List<CEnemyTemplate>();
             random = new Random();
+            enemies = new List<Enemy>();
+        }
+
+        public void SetEnemies(List<CEnemyTemplate> enemyTemplates)
+        {
+            if (enemyTemplates != null)
+            {
+                enemies = new List<Enemy>();
+                foreach (var template in enemyTemplates)
+                {
+                    enemies.Add(new Enemy(template));
+                }
+            }
         }
 
         public void LoadEnemies(string filePath)
         {
-            try
-            {
-                string json = File.ReadAllText(filePath);
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                enemyTemplates = JsonSerializer.Deserialize<List<CEnemyTemplate>>(json, options);
-                NormalizeChances();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Ошибка загрузки врагов: {ex.Message}");
-            }
+            var templateList = new CEnemyTemplateList();
+            templateList.LoadFromFile(filePath);
+            SetEnemies(templateList.GetEnemies());
         }
 
-        public void SetEnemies(List<CEnemyTemplate> enemies)
+        public Enemy? GetRandomEnemy()
         {
-            enemyTemplates = enemies;
-            NormalizeChances();
-        }
+            if (enemies == null || enemies.Count == 0)
+                return null;
 
-        private void NormalizeChances()
-        {
-            double sum = enemyTemplates.Sum(e => e.SpawnChance);
-            foreach (var enemy in enemyTemplates)
-            {
-                enemy.SpawnChance /= sum;
-            }
-        }
-
-        public Enemy GetRandomEnemy()
-        {
-            if (enemyTemplates.Count == 0) return null;
-
-            double chance = random.NextDouble();
-            double sum = 0;
-
-            foreach (var template in enemyTemplates)
-            {
-                sum += template.SpawnChance;
-                if (sum >= chance)
-                {
-                    return new Enemy(template);
-                }
-            }
-
-            return new Enemy(enemyTemplates[0]);
+            int randomIndex = random.Next(0, enemies.Count);
+            return enemies[randomIndex];
         }
     }
 }

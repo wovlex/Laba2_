@@ -24,7 +24,7 @@
         public bool TakeDamage(BigNumber damage, out BigNumber reward)
         {
             reward = new BigNumber("0");
-
+            
             if (damage >= CurrentHealth)
             {
                 reward = GoldReward;

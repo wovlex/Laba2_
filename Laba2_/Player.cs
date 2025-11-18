@@ -26,11 +26,11 @@ namespace Laba2_
             {
                 Gold = Gold - upgradeCost;
                 Level++;
-
+                
                 // Увеличиваем стоимость улучшения
                 BigNumber modifier = new BigNumber("1.2");
                 upgradeCost = upgradeCost * modifier * new BigNumber(Level.ToString());
-
+                
                 return true;
             }
             return false;

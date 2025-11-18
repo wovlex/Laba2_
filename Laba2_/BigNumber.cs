@@ -161,5 +161,17 @@ namespace Laba2_
 
             return sb.ToString();
         }
+        public double ToDouble()
+        {
+            try
+            {
+                // Если ваше BigNumber хранит число как строку
+                return double.Parse(this.ToString());
+            }
+            catch
+            {
+                return 0.0;
+            }
+        }
     }
 }

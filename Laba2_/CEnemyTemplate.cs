@@ -1,15 +1,16 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.IO;
 
 namespace Laba2_
 {
     public class CEnemyTemplate
     {
         [JsonInclude]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [JsonInclude]
-        public string IconName { get; set; }
+        public string IconName { get; set; } = string.Empty;
 
         [JsonInclude]
         public int BaseLife { get; set; }
@@ -86,7 +87,10 @@ namespace Laba2_
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var loadedEnemies = JsonSerializer.Deserialize<List<CEnemyTemplate>>(jsonFromFile, options);
                 enemies.Clear();
-                enemies.AddRange(loadedEnemies);
+                if (loadedEnemies != null)
+                {
+                    enemies.AddRange(loadedEnemies);
+                }
             }
             catch (Exception ex)
             {
