@@ -1,0 +1,62 @@
+﻿<Window x:Class="Laba2_.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Laba2_"
+        mc:Ignorable="d"
+        Title="Enemy Clicker Game" Height="450" Width="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="400"/>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="200"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Левая панель - информация о противнике -->
+        <StackPanel Grid.Column="0" HorizontalAlignment="Left" Margin="10">
+            <TextBlock Text="Enemy name:" FontWeight="Bold"/>
+            <TextBox x:Name="enemyNameText" Width="200" Height="25" Margin="0,5,0,10" IsReadOnly="True"/>
+
+            <TextBlock Text="Enemy hit points:" FontWeight="Bold"/>
+            <TextBox x:Name="enemyHpText" Width="200" Height="25" Margin="0,5,0,10" IsReadOnly="True"/>
+
+            <TextBlock Text="Gold from enemy:" FontWeight="Bold"/>
+            <TextBox x:Name="enemyGoldText" Width="200" Height="25" Margin="0,5,0,10" IsReadOnly="True"/>
+
+            <TextBlock Text="Current damage:" FontWeight="Bold"/>
+            <TextBox x:Name="currentDamageText" Width="200" Height="25" Margin="0,5,0,10" IsReadOnly="True"/>
+        </StackPanel>
+
+        <!-- Центральная панель - противник и управление -->
+        <StackPanel Grid.Column="1" HorizontalAlignment="Center" Margin="10">
+            <TextBlock Text="Click to deal damage:" FontWeight="Bold" HorizontalAlignment="Center"/>
+            <Image x:Name="enemyImage" Height="150" Width="150" Margin="0,10" 
+                   MouseDown="EnemyImage_MouseDown" Cursor="Hand"/>
+            <TextBlock x:Name="enemyHpProgress" Text="HP: 100/100" HorizontalAlignment="Center"/>
+
+            <Button Content="Next Enemy" Height="30" Width="100" Margin="0,10" Click="NextEnemy_Click"/>
+            <Button Content="Reset Game" Height="30" Width="100" Margin="0,5" Click="ResetGame_Click"/>
+        </StackPanel>
+
+        <!-- Правая панель - игрок и улучшения -->
+        <StackPanel Grid.Column="2" HorizontalAlignment="Left" Margin="10">
+            <TextBlock Text="Player Stats:" FontWeight="Bold" FontSize="14"/>
+
+            <TextBlock Text="Gold:" FontWeight="Bold" Margin="0,10,0,0"/>
+            <TextBox x:Name="playerGoldText" Width="120" Height="25" Margin="0,5,0,10" IsReadOnly="True"/>
+
+            <TextBlock Text="Damage:" FontWeight="Bold"/>
+            <TextBox x:Name="playerDamageText" Width="120" Height="25" Margin="0,5,0,10" IsReadOnly="True"/>
+
+            <TextBlock Text="Level:" FontWeight="Bold"/>
+            <TextBox x:Name="playerLevelText" Width="120" Height="25" Margin="0,5,0,10" IsReadOnly="True"/>
+
+            <TextBlock Text="Upgrade Cost:" FontWeight="Bold"/>
+            <TextBox x:Name="upgradeCostText" Width="120" Height="25" Margin="0,5,0,10" IsReadOnly="True"/>
+
+            <Button Content="Upgrade Damage" Height="35" Width="120" Margin="0,10" 
+                    Click="UpgradeDamage_Click" x:Name="upgradeButton"/>
+        </StackPanel>
+    </Grid>
+</Window>
