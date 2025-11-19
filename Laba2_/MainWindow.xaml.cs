@@ -86,6 +86,7 @@ namespace Laba2_
         private void SpawnNewEnemy()
         {
             currentEnemy = enemyManager.GetRandomEnemy();
+
             if (currentEnemy != null)
             {
                 UpdateEnemyUI();
