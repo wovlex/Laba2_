@@ -31,7 +31,7 @@
         
         <StackPanel Grid.Column="1" HorizontalAlignment="Center" Margin="10">
             <TextBlock Text="Click to deal damage:" FontWeight="Bold" HorizontalAlignment="Center"/>
-            <Image x:Name="enemyImage" Height="150" Width="150" Margin="0,10" 
+            <Image x:Name="enemyImage" Height="150" Width="150" Margin="0,10"
                    MouseDown="EnemyImage_MouseDown" Cursor="Hand"/>
             <TextBlock x:Name="enemyHpProgress" Text="HP: 100/100" HorizontalAlignment="Center"/>
 

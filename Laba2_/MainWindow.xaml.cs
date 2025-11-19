@@ -35,7 +35,7 @@ namespace Laba2_
         {
             // Инициализация игрока
             player = new Player();
-            baseDamage = new BigNumber("10");
+            baseDamage = new BigNumber("50");
 
             // Загрузка врагов из JSON
             enemyManager = new EnemyManager();
@@ -73,10 +73,12 @@ namespace Laba2_
         private void CreateTestEnemies()
         {
             var testEnemies = new CEnemyTemplateList();
-            testEnemies.AddEnemy(new CEnemyTemplate("Goblin", "goblin.png", 100, 1.1, 50, 1.2, 0.4));
-            testEnemies.AddEnemy(new CEnemyTemplate("Skeleton", "skeleton.png", 200, 1.2, 100, 1.3, 0.3));
-            testEnemies.AddEnemy(new CEnemyTemplate("Troll", "troll.png", 500, 1.5, 250, 1.5, 0.2));
-            testEnemies.AddEnemy(new CEnemyTemplate("Dragon", "dragon.png", 1000, 2.0, 1000, 2.0, 0.1));
+            testEnemies.AddEnemy(new CEnemyTemplate("Goblin", "goblin_1.png", 100, 1.1, 50, 1.2, 0.4));
+            testEnemies.AddEnemy(new CEnemyTemplate("Skeleton", "skeleton_1.png", 200, 1.2, 100, 1.3, 0.3));
+            testEnemies.AddEnemy(new CEnemyTemplate("Troll", "troll_1.png", 500, 1.5, 250, 1.5, 0.2));
+            testEnemies.AddEnemy(new CEnemyTemplate("Dragon", "goblin_5.png", 1000, 2.0, 1000, 2.0, 0.1));
+            testEnemies.AddEnemy(new CEnemyTemplate("Dragon", "goblin_7.png", 1500, 2.0, 1000, 2.0, 0.3));
+            testEnemies.AddEnemy(new CEnemyTemplate("Dragon", "goblin_8.png", 2000, 3.0, 1000, 3.0, 0.4));
 
             enemyManager.SetEnemies(testEnemies.GetEnemies());
         }
@@ -92,7 +94,7 @@ namespace Laba2_
                 try
                 {
                     string basePath = AppDomain.CurrentDomain.BaseDirectory;
-                    string imagePath = System.IO.Path.Combine(basePath, "icons/Monsters", currentEnemy.IconName);
+                    string imagePath = System.IO.Path.Combine(basePath, @"icons\Monsters", currentEnemy.IconName);
                     if (File.Exists(imagePath))
                     {
                         enemyImage.Source = new BitmapImage(new Uri(imagePath));
@@ -158,11 +160,22 @@ namespace Laba2_
         {
             if (player.TryUpgrade(baseDamage))
             {
-                baseDamage = baseDamage.Multiply(new BigNumber("1.2"));
+
+                baseDamage = baseDamage.Multiply(new BigNumber("2"));
+
+
+                if (currentEnemy != null)
+                {
+                    currentEnemy.IncreaseGoldReward(1.5);
+                }
+
+             
                 UpdatePlayerUI();
                 UpdateEnemyUI();
-                MessageBox.Show("Урон улучшен!");
+
+           
             }
+
             else
             {
                 MessageBox.Show("Недостаточно золота для улучшения!");
@@ -177,6 +190,7 @@ namespace Laba2_
         private void ResetGame_Click(object sender, RoutedEventArgs e)
         {
             InitializeGame();
+
         }
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -197,7 +211,7 @@ namespace Laba2_
                 {
                     Width = 50,
                     Height = 50,
-                    Source = new BitmapImage(new Uri("путь_к_иконке")), // здесь у вас должен быть путь к изображению
+                    Source = new BitmapImage(new Uri("icons/Monsters")), // здесь у вас должен быть путь к изображению
                     Tag = iconNames[i] // сохраняем название
                 };
                 // Создаем прямоугольник как иконку
@@ -243,7 +257,6 @@ namespace Laba2_
                 image.Source = new BitmapImage(new Uri(icon.Path));
                 image.Tag = icon.Name;
                 
-
             }
         }
     }

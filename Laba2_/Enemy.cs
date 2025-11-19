@@ -52,5 +52,12 @@
         {
             return double.Parse(this.ToString());
         }
+
+        public void IncreaseGoldReward(double multiplier)
+        {
+            BigNumber newReward = this.GoldReward.Multiply(new BigNumber(multiplier.ToString()));
+
+            this.GoldReward = newReward;
+        }
     }
 }

@@ -42,7 +42,7 @@ namespace Laba2_
 
         private void Normalize()
         {
-            // Удаляем ведущие нули
+           
             for (int i = digits.Count - 1; i > 0; i--)
             {
                 if (digits[i] == 0)
@@ -137,7 +137,7 @@ namespace Laba2_
             return !LessThan(other);
         }
 
-        // Перегрузка операторов
+        
         public static BigNumber operator +(BigNumber a, BigNumber b) => a.Add(b);
         public static BigNumber operator -(BigNumber a, BigNumber b) => a.Subtract(b);
         public static BigNumber operator *(BigNumber a, BigNumber b) => a.Multiply(b);
@@ -165,12 +165,12 @@ namespace Laba2_
         {
             try
             {
-                // Если ваше BigNumber хранит число как строку
+                
                 return double.Parse(this.ToString());
             }
             catch
             {
-                return 0.0;
+                return 0;
             }
         }
     }

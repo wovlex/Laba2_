@@ -18,7 +18,9 @@ namespace Laba2_
         public void AddGold(BigNumber amount)
         {
             Gold = Gold + amount;
+            
         }
+
 
         public bool TryUpgrade(BigNumber currentDamage)
         {
@@ -26,11 +28,12 @@ namespace Laba2_
             {
                 Gold = Gold - upgradeCost;
                 Level++;
+
                 
-                // Увеличиваем стоимость улучшения
-                BigNumber modifier = new BigNumber("1.2");
-                upgradeCost = upgradeCost * modifier * new BigNumber(Level.ToString());
-                
+                BigNumber baseCost = new BigNumber("100");
+                BigNumber levelModifier = new BigNumber((1.2 + 0.05 * Level).ToString());
+                upgradeCost = baseCost * levelModifier;
+
                 return true;
             }
             return false;
@@ -44,6 +47,7 @@ namespace Laba2_
         public BigNumber GetUpgradeCost()
         {
             return upgradeCost;
+
         }
     }
 }
