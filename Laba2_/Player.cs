@@ -7,7 +7,7 @@ namespace Laba2_
         public BigNumber Gold { get; private set; }
         public int Level { get; private set; }
         private BigNumber upgradeCost;
-
+       
         public Player()
         {
             Gold = new BigNumber("0");
@@ -32,7 +32,7 @@ namespace Laba2_
                 
                 BigNumber baseCost = new BigNumber("100");
                 BigNumber levelModifier = new BigNumber((1.2 + 0.05 * Level).ToString());
-                upgradeCost = baseCost * levelModifier;
+                upgradeCost = baseCost * levelModifier ;
 
                 return true;
             }

@@ -124,12 +124,12 @@ namespace Laba2_
         {
             if (currentEnemy != null && baseDamage != null)
             {
-                enemyNameText.Text = currentEnemy.Name;
+                enemyNameText.Text = $"{currentEnemy.Name} (Ур. {currentEnemy.GetLevel()})";
                 enemyHpText.Text = $"{currentEnemy.CurrentHealth} / {currentEnemy.MaxHealth}";
-                enemyGoldText.Text = currentEnemy.GoldReward.ToString();
+                enemyGoldText.Text = $"{currentEnemy.GoldReward} (x{currentEnemy.GoldModifier:F2})";
                 currentDamageText.Text = baseDamage.ToString();
 
-                // Прогресс HP - используем ToDouble() для преобразования BigNumber в double
+                // Прогресс HP
                 double currentHP = currentEnemy.CurrentHealth.ToDouble();
                 double maxHP = currentEnemy.MaxHealth.ToDouble();
                 double hpPercent = currentHP / maxHP;
@@ -161,30 +161,33 @@ namespace Laba2_
         {
             if (player.TryUpgrade(baseDamage))
             {
+                // Увеличиваем урон игрока
+                baseDamage = baseDamage.Multiply(new BigNumber("1.2"));
 
-                baseDamage = baseDamage.Multiply(new BigNumber("2"));
-
-
+                // Увеличиваем уровень текущего врага и восстанавливаем его здоровье
                 if (currentEnemy != null)
                 {
+                    currentEnemy.LevelUp(); // Это восстановит здоровье и увеличит GoldModifier
+
+                    // Дополнительно увеличиваем награду
                     currentEnemy.IncreaseGoldReward(1.5);
                 }
 
-             
+                // Обновляем интерфейс
                 UpdatePlayerUI();
                 UpdateEnemyUI();
 
-           
+               
             }
-
             else
             {
-                MessageBox.Show("Недостаточно золота для улучшения!");
+               
             }
         }
 
         private void NextEnemy_Click(object sender, RoutedEventArgs e)
         {
+
             SpawnNewEnemy();
         }
 

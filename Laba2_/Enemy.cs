@@ -9,6 +9,7 @@
         public BigNumber GoldReward { get; private set; }
         public double HealthModifier { get; private set; }
         public double GoldModifier { get; private set; }
+        private int level;
 
         public Enemy(CEnemyTemplate template)
         {
@@ -19,12 +20,13 @@
             GoldReward = new BigNumber(template.BaseGold.ToString());
             HealthModifier = template.LifeModifier;
             GoldModifier = template.GoldModifier;
+            level = 1;
         }
 
         public bool TakeDamage(BigNumber damage, out BigNumber reward)
         {
             reward = new BigNumber("0");
-            
+
             if (damage >= CurrentHealth)
             {
                 reward = GoldReward;
@@ -39,25 +41,50 @@
 
         public void LevelUp()
         {
-            // Увеличиваем характеристики при появлении нового противника
+            level++;
+
+            // Увеличиваем максимальное здоровье
             BigNumber healthIncrease = new BigNumber(((int)(MaxHealth.ToDouble() * (HealthModifier - 1))).ToString());
             MaxHealth = MaxHealth + healthIncrease;
+
+            // ВОССТАНАВЛИВАЕМ здоровье полностью
             CurrentHealth = MaxHealth;
 
+            // Увеличиваем GoldModifier с каждым уровнем
+            GoldModifier *= 1.1; // Увеличиваем на 10% каждый уровень
+
+            // Увеличиваем награду за золото
             BigNumber goldIncrease = new BigNumber(((int)(GoldReward.ToDouble() * (GoldModifier - 1))).ToString());
             GoldReward = GoldReward + goldIncrease;
         }
 
-        private double ToDouble()
+        public void RestoreHealth()
         {
-            return double.Parse(this.ToString());
+            // Полное восстановление здоровья
+            CurrentHealth = MaxHealth;
+        }
+
+        public double ToDouble()
+        {
+            try
+            {
+                return double.Parse(this.ToString());
+            }
+            catch
+            {
+                return 0;
+            }
         }
 
         public void IncreaseGoldReward(double multiplier)
         {
             BigNumber newReward = this.GoldReward.Multiply(new BigNumber(multiplier.ToString()));
-
             this.GoldReward = newReward;
+        }
+
+        public int GetLevel()
+        {
+            return level;
         }
     }
 }

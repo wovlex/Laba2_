@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
+﻿
 namespace Laba2_
 {
     public class EnemyManager
@@ -40,6 +38,18 @@ namespace Laba2_
 
             int randomIndex = random.Next(0, enemies.Count);
             return enemies[randomIndex];
+        }
+
+        // Новый метод для увеличения уровня всех врагов
+        public void LevelUpAllEnemies()
+        {
+            if (enemies != null)
+            {
+                foreach (var enemy in enemies)
+                {
+                    enemy.LevelUp();
+                }
+            }
         }
     }
 }
