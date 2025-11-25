@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 
 namespace Laba2_
 {
@@ -23,7 +21,13 @@ namespace Laba2_
 
         private void ParseString(string number)
         {
-            number = number.Replace(" ", "").Trim();
+            number = number.Replace(" ", "").Replace(".", "").Replace(",", "").Trim();
+
+            if (string.IsNullOrEmpty(number))
+            {
+                digits.Add(0);
+                return;
+            }
 
             for (int i = number.Length; i > 0; i -= 3)
             {
@@ -35,6 +39,10 @@ namespace Laba2_
                 {
                     digits.Add(digit);
                 }
+                else
+                {
+                    digits.Add(0);
+                }
             }
 
             Normalize();
@@ -42,7 +50,6 @@ namespace Laba2_
 
         private void Normalize()
         {
-           
             for (int i = digits.Count - 1; i > 0; i--)
             {
                 if (digits[i] == 0)
@@ -50,6 +57,9 @@ namespace Laba2_
                 else
                     break;
             }
+
+            if (digits.Count == 0)
+                digits.Add(0);
         }
 
         public BigNumber Add(BigNumber other)
@@ -102,20 +112,29 @@ namespace Laba2_
 
         public BigNumber Multiply(BigNumber other)
         {
-            List<int> result = new List<int>(new int[digits.Count + other.digits.Count]);
+            List<int> result = new List<int>(new int[digits.Count + other.digits.Count + 1]);
 
             for (int i = 0; i < digits.Count; i++)
             {
                 int carry = 0;
                 for (int j = 0; j < other.digits.Count || carry > 0; j++)
                 {
-                    long product = result[i + j] + (long)digits[i] * (j < other.digits.Count ? other.digits[j] : 0) + carry;
+                    long product = result[i + j] +
+                                  (long)digits[i] * (j < other.digits.Count ? other.digits[j] : 0) +
+                                  carry;
                     result[i + j] = (int)(product % BASE);
                     carry = (int)(product / BASE);
                 }
             }
 
             return new BigNumber(result);
+        }
+
+        public BigNumber Multiply(double multiplier)
+        {
+            // Преобразуем в double, умножаем и создаем новый BigNumber
+            double value = this.ToDouble() * multiplier;
+            return new BigNumber(((long)value).ToString());
         }
 
         public bool LessThan(BigNumber other)
@@ -137,18 +156,23 @@ namespace Laba2_
             return !LessThan(other);
         }
 
-        
+        public bool LessThanOrEqual(BigNumber other)
+        {
+            return LessThan(other) || this.ToString() == other.ToString();
+        }
+
         public static BigNumber operator +(BigNumber a, BigNumber b) => a.Add(b);
         public static BigNumber operator -(BigNumber a, BigNumber b) => a.Subtract(b);
         public static BigNumber operator *(BigNumber a, BigNumber b) => a.Multiply(b);
         public static bool operator <(BigNumber a, BigNumber b) => a.LessThan(b);
         public static bool operator >(BigNumber a, BigNumber b) => b.LessThan(a);
-        public static bool operator <=(BigNumber a, BigNumber b) => !(a > b);
-        public static bool operator >=(BigNumber a, BigNumber b) => !(a < b);
+        public static bool operator <=(BigNumber a, BigNumber b) => a.LessThanOrEqual(b);
+        public static bool operator >=(BigNumber a, BigNumber b) => a.GreaterThanOrEqual(b);
 
         public override string ToString()
         {
-            if (digits.Count == 0) return "0";
+            if (digits.Count == 0 || (digits.Count == 1 && digits[0] == 0))
+                return "0";
 
             StringBuilder sb = new StringBuilder();
             for (int i = digits.Count - 1; i >= 0; i--)
@@ -161,12 +185,14 @@ namespace Laba2_
 
             return sb.ToString();
         }
+
         public double ToDouble()
         {
             try
             {
-                
-                return double.Parse(this.ToString());
+                if (double.TryParse(this.ToString(), out double result))
+                    return result;
+                return 0;
             }
             catch
             {

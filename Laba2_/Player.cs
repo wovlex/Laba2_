@@ -1,13 +1,11 @@
-﻿using System;
-
-namespace Laba2_
+﻿namespace Laba2_
 {
     public class Player
     {
         public BigNumber Gold { get; private set; }
         public int Level { get; private set; }
         private BigNumber upgradeCost;
-       
+
         public Player()
         {
             Gold = new BigNumber("0");
@@ -18,36 +16,32 @@ namespace Laba2_
         public void AddGold(BigNumber amount)
         {
             Gold = Gold + amount;
-            
         }
 
-
-        public bool TryUpgrade(BigNumber currentDamage)
+        public bool TryUpgrade()
         {
-            if (CanUpgrade(currentDamage))
+            if (CanUpgrade())
             {
                 Gold = Gold - upgradeCost;
                 Level++;
 
-                
-                BigNumber baseCost = new BigNumber("100");
-                BigNumber levelModifier = new BigNumber((1.2 + 0.05 * Level).ToString());
-                upgradeCost = baseCost * levelModifier ;
+                // Улучшенная формула стоимости улучшения
+                double newCost = upgradeCost.ToDouble() * 1.3;
+                upgradeCost = new BigNumber(((int)newCost).ToString());
 
                 return true;
             }
             return false;
         }
 
-        public bool CanUpgrade(BigNumber currentDamage)
+        public bool CanUpgrade()
         {
-            return Gold >= upgradeCost;
+            return Gold.GreaterThanOrEqual(upgradeCost);
         }
 
         public BigNumber GetUpgradeCost()
         {
             return upgradeCost;
-
         }
     }
 }

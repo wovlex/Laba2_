@@ -6,7 +6,7 @@
         public string IconName { get; private set; }
         public BigNumber MaxHealth { get; private set; }
         public BigNumber CurrentHealth { get; private set; }
-        public BigNumber GoldReward { get; private set; }
+        public BigNumber CurrentGoldReward { get; private set; }
         public double HealthModifier { get; private set; }
         public double GoldModifier { get; private set; }
         private int level;
@@ -17,7 +17,7 @@
             IconName = template.IconName;
             MaxHealth = new BigNumber(template.BaseLife.ToString());
             CurrentHealth = new BigNumber(template.BaseLife.ToString());
-            GoldReward = new BigNumber(template.BaseGold.ToString());
+            CurrentGoldReward = new BigNumber(template.BaseGold.ToString());
             HealthModifier = template.LifeModifier;
             GoldModifier = template.GoldModifier;
             level = 1;
@@ -27,10 +27,14 @@
         {
             reward = new BigNumber("0");
 
-            if (damage >= CurrentHealth)
+            if (CurrentHealth.LessThanOrEqual(new BigNumber("0")))
+                return false;
+
+            if (damage.GreaterThanOrEqual(CurrentHealth))
             {
-                reward = GoldReward;
-                return true; // Противник побежден
+                reward = CurrentGoldReward;
+                CurrentHealth = new BigNumber("0");
+                return true;
             }
             else
             {
@@ -44,47 +48,36 @@
             level++;
 
             // Увеличиваем максимальное здоровье
-            BigNumber healthIncrease = new BigNumber(((int)(MaxHealth.ToDouble() * (HealthModifier - 1))).ToString());
-            MaxHealth = MaxHealth + healthIncrease;
+            double newMaxHealth = MaxHealth.ToDouble() * HealthModifier;
+            MaxHealth = new BigNumber(((int)newMaxHealth).ToString());
 
-            // ВОССТАНАВЛИВАЕМ здоровье полностью
-            CurrentHealth = MaxHealth;
-
-            // Увеличиваем GoldModifier с каждым уровнем
-            GoldModifier *= 1.1; // Увеличиваем на 10% каждый уровень
+            // Восстанавливаем здоровье
+            RestoreHealth();
 
             // Увеличиваем награду за золото
-            BigNumber goldIncrease = new BigNumber(((int)(GoldReward.ToDouble() * (GoldModifier - 1))).ToString());
-            GoldReward = GoldReward + goldIncrease;
+            double newGoldReward = CurrentGoldReward.ToDouble() * GoldModifier;
+            CurrentGoldReward = new BigNumber(((int)newGoldReward).ToString());
         }
 
         public void RestoreHealth()
         {
-            // Полное восстановление здоровья
             CurrentHealth = MaxHealth;
-        }
-
-        public double ToDouble()
-        {
-            try
-            {
-                return double.Parse(this.ToString());
-            }
-            catch
-            {
-                return 0;
-            }
         }
 
         public void IncreaseGoldReward(double multiplier)
         {
-            BigNumber newReward = this.GoldReward.Multiply(new BigNumber(multiplier.ToString()));
-            this.GoldReward = newReward;
+            double newReward = CurrentGoldReward.ToDouble() * multiplier;
+            CurrentGoldReward = new BigNumber(((int)newReward).ToString());
         }
 
         public int GetLevel()
         {
             return level;
+        }
+
+        public string GetEnemyInfo()
+        {
+            return $"{Name} (Ур. {level}): HP {CurrentHealth}/{MaxHealth}, Gold: {CurrentGoldReward}";
         }
     }
 }

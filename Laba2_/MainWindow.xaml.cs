@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml.Linq;
+
 namespace Laba2_
 {
     public partial class MainWindow : Window
@@ -25,6 +26,7 @@ namespace Laba2_
         private EnemyManager enemyManager;
         private BigNumber baseDamage;
         private CIconList iniicon;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -100,11 +102,15 @@ namespace Laba2_
                     {
                         enemyImage.Source = new BitmapImage(new Uri(imagePath));
                     }
+                    else
+                    {
+                        // Если файл не найден, показываем сообщение
+                        MessageBox.Show($"Изображение не найдено: {imagePath}");
+                    }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Если изображение не найдено, используем placeholder
-                    enemyImage.Source = new BitmapImage(new Uri("pack://application:,,,/placeholder.png"));
+                    MessageBox.Show($"Ошибка загрузки изображения: {ex.Message}");
                 }
             }
         }
@@ -117,7 +123,10 @@ namespace Laba2_
             upgradeCostText.Text = player.GetUpgradeCost().ToString();
 
             // Проверяем, может ли игрок улучшить урон
-            upgradeButton.IsEnabled = player.CanUpgrade(baseDamage);
+            upgradeButton.IsEnabled = player.CanUpgrade();
+
+            // Отладочная информация
+            Debug.WriteLine($"Player UI - Gold: {player.Gold}, Damage: {baseDamage}, Level: {player.Level}");
         }
 
         private void UpdateEnemyUI()
@@ -125,14 +134,16 @@ namespace Laba2_
             if (currentEnemy != null && baseDamage != null)
             {
                 enemyNameText.Text = $"{currentEnemy.Name} (Ур. {currentEnemy.GetLevel()})";
-                enemyHpText.Text = $"{currentEnemy.CurrentHealth} / {currentEnemy.MaxHealth}";
-                enemyGoldText.Text = $"{currentEnemy.GoldReward} (x{currentEnemy.GoldModifier:F2})";
+                enemyHpText.Text = $"{currentEnemy.CurrentHealth}/{currentEnemy.MaxHealth}";
+
+                // Используем CurrentGoldReward вместо GoldReward
+                enemyGoldText.Text = $"{currentEnemy.CurrentGoldReward} (x{currentEnemy.GoldModifier:F2})";
                 currentDamageText.Text = baseDamage.ToString();
 
                 // Прогресс HP
                 double currentHP = currentEnemy.CurrentHealth.ToDouble();
                 double maxHP = currentEnemy.MaxHealth.ToDouble();
-                double hpPercent = currentHP / maxHP;
+                double hpPercent = maxHP > 0 ? currentHP / maxHP : 0;
 
                 enemyHpProgress.Text = $"HP: {currentEnemy.CurrentHealth}/{currentEnemy.MaxHealth} ({(hpPercent * 100):F1}%)";
             }
@@ -159,48 +170,37 @@ namespace Laba2_
 
         private void UpgradeDamage_Click(object sender, RoutedEventArgs e)
         {
-            if (player.TryUpgrade(baseDamage))
+            if (player.TryUpgrade())
             {
-                // Увеличиваем урон игрока
-                baseDamage = baseDamage.Multiply(new BigNumber("1.2"));
+                // Увеличиваем урон игрока - используем умножение на double
+                baseDamage = baseDamage.Multiply(1.2);
 
-                // Увеличиваем уровень текущего врага и восстанавливаем его здоровье
-                if (currentEnemy != null)
-                {
-                    currentEnemy.LevelUp(); // Это восстановит здоровье и увеличит GoldModifier
+                // Восстанавливаем здоровье ВСЕХ противников
+                enemyManager.RestoreAllEnemiesHealth();
 
-                    // Дополнительно увеличиваем награду
-                    currentEnemy.IncreaseGoldReward(1.5);
-                }
+                // Увеличиваем уровень ВСЕХ врагов
+                enemyManager.LevelUpAllEnemies();
 
                 // Обновляем интерфейс
                 UpdatePlayerUI();
                 UpdateEnemyUI();
 
-               
-            }
-            else
-            {
-               
+                // Отладочная информация
+                Debug.WriteLine($"After upgrade - BaseDamage: {baseDamage}, Player Level: {player.Level}");
             }
         }
 
         private void NextEnemy_Click(object sender, RoutedEventArgs e)
         {
-
             SpawnNewEnemy();
         }
 
         private void ResetGame_Click(object sender, RoutedEventArgs e)
         {
             InitializeGame();
-
         }
 
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-
-        }
+     
         private void LoadIcons()
         {
             string[] iconNames = { "Sword", "Axe", "Bow", "Staff" };
@@ -215,10 +215,10 @@ namespace Laba2_
                 {
                     Width = 50,
                     Height = 50,
-                    Source = new BitmapImage(new Uri("icons/Monsters")), // здесь у вас должен быть путь к изображению
-                    Tag = iconNames[i] // сохраняем название
+                    Source = new BitmapImage(new Uri("icons/Monsters")),
+                    Tag = iconNames[i]
                 };
-                // Создаем прямоугольник как иконку
+
                 Rectangle icon = new Rectangle
                 {
                     Width = 50,
@@ -230,10 +230,8 @@ namespace Laba2_
                 };
 
                 iniicon = new CIconList(50, 50, 4, 2);
-              
-                  DisplayIcons();
+                DisplayIcons();
 
-                // Добавляем текст с названием
                 TextBlock text = new TextBlock
                 {
                     Text = iconNames[i],
@@ -246,12 +244,10 @@ namespace Laba2_
                 Canvas.SetLeft(text, x);
                 Canvas.SetTop(text, y + 55);
 
-
-
-                // Сдвигаем позицию для следующей иконки
                 x += 60;
             }
         }
+
         public void DisplayIcons()
         {
             var icons = iniicon.GetIcons();
@@ -260,7 +256,6 @@ namespace Laba2_
                 Image image = new Image();
                 image.Source = new BitmapImage(new Uri(icon.Path));
                 image.Tag = icon.Name;
-                
             }
         }
     }
