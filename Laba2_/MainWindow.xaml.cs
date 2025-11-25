@@ -178,6 +178,7 @@ namespace Laba2_
                 // Восстанавливаем здоровье ВСЕХ противников
                 enemyManager.RestoreAllEnemiesHealth();
 
+
                 // Увеличиваем уровень ВСЕХ врагов
                 enemyManager.LevelUpAllEnemies();
 
