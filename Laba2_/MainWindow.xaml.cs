@@ -78,9 +78,9 @@ namespace Laba2_
             testEnemies.AddEnemy(new CEnemyTemplate("Goblin", "goblin_1.png", 100, 1.1, 50, 1.2, 0.4));
             testEnemies.AddEnemy(new CEnemyTemplate("Skeleton", "skeleton_1.png", 200, 1.2, 100, 1.3, 0.3));
             testEnemies.AddEnemy(new CEnemyTemplate("Troll", "troll_1.png", 500, 1.5, 250, 1.5, 0.2));
-            testEnemies.AddEnemy(new CEnemyTemplate("Dragon", "goblin_5.png", 1000, 2.0, 1000, 2.0, 0.1));
-            testEnemies.AddEnemy(new CEnemyTemplate("Dragon", "goblin_7.png", 1500, 2.0, 1000, 2.0, 0.3));
-            testEnemies.AddEnemy(new CEnemyTemplate("Dragon", "goblin_8.png", 2000, 3.0, 1000, 3.0, 0.4));
+            testEnemies.AddEnemy(new CEnemyTemplate("Goblin", "goblin_5.png", 1000, 2.0, 1000, 2.0, 0.1));
+            testEnemies.AddEnemy(new CEnemyTemplate("Goblin", "goblin_7.png", 1500, 2.0, 1000, 2.0, 0.3));
+            testEnemies.AddEnemy(new CEnemyTemplate("Goblin", "goblin_8.png", 2000, 3.0, 1000, 3.0, 0.4));
 
             enemyManager.SetEnemies(testEnemies.GetEnemies());
         }
