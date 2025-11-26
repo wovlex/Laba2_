@@ -90,6 +90,7 @@ namespace Laba2_
             currentEnemy = enemyManager.GetRandomEnemy();
 
             if (currentEnemy != null)
+
             {
                 UpdateEnemyUI();
 
