@@ -22,7 +22,7 @@ namespace Laba2_
 
         public void SpawnRandomBonus()
         {
-            if (activeBonuses.Count >= 3) // Максимум 3 бонуса одновременно
+            if (activeBonuses.Count >= 3) 
                 return;
 
             Point position = new Point(
