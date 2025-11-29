@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml.Linq;
+using System.Windows.Threading;
 
 namespace Laba2_
 {
@@ -26,11 +27,15 @@ namespace Laba2_
         private EnemyManager enemyManager;
         private BigNumber baseDamage;
         private CIconList iniicon;
+        private BonusController bonusController;
+        private DispatcherTimer gameTimer;
+        private DispatcherTimer bonusSpawnTimer;
 
         public MainWindow()
         {
             InitializeComponent();
             InitializeGame();
+            InitializeTimers();
         }
 
         private void InitializeGame()
@@ -43,9 +48,47 @@ namespace Laba2_
             enemyManager = new EnemyManager();
             LoadEnemies();
 
+            // Инициализация контроллера бонусов
+            bonusController = new BonusController(new System.Windows.Size(160, 160));
+
             // Обновление интерфейса
             UpdatePlayerUI();
             SpawnNewEnemy();
+        }
+
+        private void InitializeTimers()
+        {
+            // Таймер для обновления игры
+            gameTimer = new DispatcherTimer();
+            gameTimer.Interval = TimeSpan.FromMilliseconds(100);
+            gameTimer.Tick += GameTimer_Tick;
+            gameTimer.Start();
+
+            // Таймер для спавна бонусов
+            bonusSpawnTimer = new DispatcherTimer();
+            bonusSpawnTimer.Interval = TimeSpan.FromSeconds(3);
+            bonusSpawnTimer.Tick += BonusSpawnTimer_Tick;
+            bonusSpawnTimer.Start();
+        }
+
+        private void GameTimer_Tick(object sender, EventArgs e)
+        {
+            // Обновление перезарядки игрока
+            player.UpdateCooldown(0.1);
+
+            // Обновление бонусов
+            bonusController.Update(0.1);
+
+            // Обновление UI
+            UpdateCooldownUI();
+            UpdateActiveEffectsUI();
+            UpdateBonusUI();
+        }
+
+        private void BonusSpawnTimer_Tick(object sender, EventArgs e)
+        {
+            bonusController.SpawnRandomBonus();
+            UpdateBonusUI();
         }
 
         private void LoadEnemies()
@@ -61,7 +104,6 @@ namespace Laba2_
                 }
                 else
                 {
-                    // Создаем тестовых врагов если файла нет
                     CreateTestEnemies();
                 }
             }
@@ -90,11 +132,9 @@ namespace Laba2_
             currentEnemy = enemyManager.GetRandomEnemy();
 
             if (currentEnemy != null)
-
             {
                 UpdateEnemyUI();
 
-                // Загрузка изображения врага
                 try
                 {
                     string basePath = AppDomain.CurrentDomain.BaseDirectory;
@@ -103,11 +143,7 @@ namespace Laba2_
                     {
                         enemyImage.Source = new BitmapImage(new Uri(imagePath));
                     }
-                    else
-                    {
-                        // Если файл не найден, показываем сообщение
-                        MessageBox.Show($"Изображение не найдено: {imagePath}");
-                    }
+                   
                 }
                 catch (Exception ex)
                 {
@@ -122,12 +158,48 @@ namespace Laba2_
             playerDamageText.Text = baseDamage.ToString();
             playerLevelText.Text = player.Level.ToString();
             upgradeCostText.Text = player.GetUpgradeCost().ToString();
+            upgradeCooldownCostText.Text = player.GetCooldownUpgradeCost().ToString();
 
-            // Проверяем, может ли игрок улучшить урон
             upgradeButton.IsEnabled = player.CanUpgrade();
+            upgradeCooldownButton.IsEnabled = player.CanUpgradeCooldown();
+        }
 
-            // Отладочная информация
-            Debug.WriteLine($"Player UI - Gold: {player.Gold}, Damage: {baseDamage}, Level: {player.Level}");
+        private void UpdateCooldownUI()
+        {
+            cooldownText.Text = $"{player.CurrentCooldown:F1}s / {player.BaseCooldown:F1}s";
+        }
+
+        private void UpdateActiveEffectsUI()
+        {
+            activeEffectsList.Items.Clear();
+            foreach (var effect in player.GetActiveEffects())
+            {
+                activeEffectsList.Items.Add(effect);
+            }
+        }
+
+        private void UpdateBonusUI()
+        {
+            // Очищаем canvas от старых бонусов
+            var bonusesToRemove = new List<UIElement>();
+            foreach (UIElement element in gameCanvas.Children)
+            {
+                if (element is Ellipse && element != enemyImage)
+                {
+                    bonusesToRemove.Add(element);
+                }
+            }
+
+            foreach (var bonus in bonusesToRemove)
+            {
+                gameCanvas.Children.Remove(bonus);
+            }
+
+            // Добавляем текущие бонусы
+            foreach (var bonus in bonusController.GetActiveBonuses())
+            {
+                gameCanvas.Children.Add(bonus.GetSprite());
+            }
         }
 
         private void UpdateEnemyUI()
@@ -136,12 +208,9 @@ namespace Laba2_
             {
                 enemyNameText.Text = $"{currentEnemy.Name} (Ур. {currentEnemy.GetLevel()})";
                 enemyHpText.Text = $"{currentEnemy.CurrentHealth}/{currentEnemy.MaxHealth}";
-
-                // Используем CurrentGoldReward вместо GoldReward
                 enemyGoldText.Text = $"{currentEnemy.CurrentGoldReward} (x{currentEnemy.GoldModifier:F2})";
                 currentDamageText.Text = baseDamage.ToString();
 
-                // Прогресс HP
                 double currentHP = currentEnemy.CurrentHealth.ToDouble();
                 double maxHP = currentEnemy.MaxHealth.ToDouble();
                 double hpPercent = maxHP > 0 ? currentHP / maxHP : 0;
@@ -152,20 +221,35 @@ namespace Laba2_
 
         private void EnemyImage_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (currentEnemy != null)
+            if (currentEnemy != null && player.CanAttack())
             {
+                // Проверяем клик по бонусам
+                Point mousePosition = e.GetPosition(gameCanvas);
+                if (bonusController.CheckBonusClick(mousePosition, player))
+                {
+                    UpdateBonusUI();
+                    return;
+                }
+
+                // Атака врага
                 BigNumber reward;
                 bool isDefeated = currentEnemy.TakeDamage(baseDamage, out reward);
 
                 if (isDefeated)
                 {
                     player.AddGold(reward);
-                    MessageBox.Show($"Победа! Получено {reward} золота!");
+                   
                     SpawnNewEnemy();
                 }
 
+                player.StartCooldown();
                 UpdateEnemyUI();
                 UpdatePlayerUI();
+                UpdateCooldownUI();
+            }
+            else if (!player.CanAttack())
+            {
+                MessageBox.Show($"Подождите {player.CurrentCooldown:F1} секунд перед следующей атакой!");
             }
         }
 
@@ -173,24 +257,24 @@ namespace Laba2_
         {
             if (player.TryUpgrade())
             {
-                // Увеличиваем урон игрока - используем умножение на double
                 baseDamage = baseDamage.Multiply(1.2);
-
-                // Восстанавливаем здоровье ВСЕХ противников
                 enemyManager.RestoreAllEnemiesHealth();
-
-
-
-
-                // Увеличиваем уровень ВСЕХ врагов
                 enemyManager.LevelUpAllEnemies();
 
-                // Обновляем интерфейс
                 UpdatePlayerUI();
                 UpdateEnemyUI();
 
-                // Отладочная информация
                 Debug.WriteLine($"After upgrade - BaseDamage: {baseDamage}, Player Level: {player.Level}");
+            }
+        }
+
+        private void UpgradeCooldown_Click(object sender, RoutedEventArgs e)
+        {
+            if (player.TryUpgradeCooldown())
+            {
+                UpdatePlayerUI();
+                UpdateCooldownUI();
+                MessageBox.Show($"Перезарядка уменьшена до {player.BaseCooldown:F1} секунд!");
             }
         }
 
@@ -201,57 +285,62 @@ namespace Laba2_
 
         private void ResetGame_Click(object sender, RoutedEventArgs e)
         {
+            gameTimer.Stop();
+            bonusSpawnTimer.Stop();
             InitializeGame();
+            gameTimer.Start();
+            bonusSpawnTimer.Start();
         }
 
-     
-        private void LoadIcons()
+        // Остальные методы остаются без изменений...
+        private void LoadIcons() 
         {
-            string[] iconNames = { "Sword", "Axe", "Bow", "Staff" };
-            Color[] colors = { Colors.Red, Colors.Blue, Colors.Green, Colors.Orange };
-
-            double x = 10;
-            double y = 10;
-
-            for (int i = 0; i < iconNames.Length; i++)
             {
-                Image img = new Image
+                string[] iconNames = { "Sword", "Axe", "Bow", "Staff" };
+                Color[] colors = { Colors.Red, Colors.Blue, Colors.Green, Colors.Orange };
+
+                double x = 10;
+                double y = 10;
+
+                for (int i = 0; i < iconNames.Length; i++)
                 {
-                    Width = 50,
-                    Height = 50,
-                    Source = new BitmapImage(new Uri("icons/Monsters")),
-                    Tag = iconNames[i]
-                };
+                    Image img = new Image
+                    {
+                        Width = 50,
+                        Height = 50,
+                        Source = new BitmapImage(new Uri("icons/Monsters")),
+                        Tag = iconNames[i]
+                    };
 
-                Rectangle icon = new Rectangle
-                {
-                    Width = 50,
-                    Height = 50,
-                    Fill = new SolidColorBrush(colors[i]),
-                    Stroke = Brushes.Black,
-                    StrokeThickness = 2,
-                    Tag = iconNames[i]
-                };
+                    Rectangle icon = new Rectangle
+                    {
+                        Width = 50,
+                        Height = 50,
+                        Fill = new SolidColorBrush(colors[i]),
+                        Stroke = Brushes.Black,
+                        StrokeThickness = 2,
+                        Tag = iconNames[i]
+                    };
 
-                iniicon = new CIconList(50, 50, 4, 2);
-                DisplayIcons();
+                    iniicon = new CIconList(50, 50, 4, 2);
+                    DisplayIcons();
 
-                TextBlock text = new TextBlock
-                {
-                    Text = iconNames[i],
-                    Foreground = Brushes.Black,
-                    FontSize = 10,
-                    Width = 50,
-                    TextAlignment = TextAlignment.Center
-                };
+                    TextBlock text = new TextBlock
+                    {
+                        Text = iconNames[i],
+                        Foreground = Brushes.Black,
+                        FontSize = 10,
+                        Width = 50,
+                        TextAlignment = TextAlignment.Center
+                    };
 
-                Canvas.SetLeft(text, x);
-                Canvas.SetTop(text, y + 55);
+                    Canvas.SetLeft(text, x);
+                    Canvas.SetTop(text, y + 55);
 
-                x += 60;
+                    x += 60;
+                }
             }
         }
-
         public void DisplayIcons()
         {
             var icons = iniicon.GetIcons();
