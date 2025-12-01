@@ -109,7 +109,7 @@ namespace Laba2_
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка загрузки врагов: {ex.Message}");
+                
                 CreateTestEnemies();
             }
         }
@@ -198,9 +198,39 @@ namespace Laba2_
             // Добавляем текущие бонусы
             foreach (var bonus in bonusController.GetActiveBonuses())
             {
-                gameCanvas.Children.Add(bonus.GetSprite());
+                var ellipse = bonus.GetSprite();
+                if (ellipse != null)
+                {
+                    // Устанавливаем позицию
+                    Canvas.SetLeft(ellipse, bonus.GetPosition().X);
+                    Canvas.SetTop(ellipse, bonus.GetPosition().Y);
+
+                    // Добавляем обработчик клика (через Tag)
+                    ellipse.Tag = bonus;
+                    ellipse.MouseDown += Bonus_MouseDown;
+
+                    gameCanvas.Children.Add(ellipse);
+                }
             }
         }
+
+        private void Bonus_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Ellipse ellipse && ellipse.Tag is Bonus bonus)
+            {
+                Point mousePosition = e.GetPosition(gameCanvas);
+                if (bonus.IsMouseOver(mousePosition))
+                {
+                    bonus.ApplyEffect(player);
+                    bonusController.RemoveBonus(bonus);
+                    UpdateBonusUI();
+                    UpdatePlayerUI();
+                    UpdateActiveEffectsUI();
+                    e.Handled = true;
+                }
+            }
+        }
+
 
         private void UpdateEnemyUI()
         {
@@ -225,9 +255,14 @@ namespace Laba2_
             {
                 // Проверяем клик по бонусам
                 Point mousePosition = e.GetPosition(gameCanvas);
+
+                // Проверяем клик по бонусам через контроллер
                 if (bonusController.CheckBonusClick(mousePosition, player))
                 {
                     UpdateBonusUI();
+                    UpdatePlayerUI();
+                    UpdateActiveEffectsUI();
+                    e.Handled = true;
                     return;
                 }
 
@@ -249,7 +284,7 @@ namespace Laba2_
             }
             else if (!player.CanAttack())
             {
-                MessageBox.Show($"Подождите {player.CurrentCooldown:F1} секунд перед следующей атакой!");
+                
             }
         }
 
@@ -274,7 +309,7 @@ namespace Laba2_
             {
                 UpdatePlayerUI();
                 UpdateCooldownUI();
-                MessageBox.Show($"Перезарядка уменьшена до {player.BaseCooldown:F1} секунд!");
+                
             }
         }
 
