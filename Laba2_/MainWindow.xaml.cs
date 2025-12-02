@@ -1,21 +1,23 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using System.Xml.Linq;
 using System.Windows.Threading;
 
 namespace Laba2_
@@ -30,10 +32,12 @@ namespace Laba2_
         private BonusController bonusController;
         private DispatcherTimer gameTimer;
         private DispatcherTimer bonusSpawnTimer;
+        private Random random;
 
         public MainWindow()
         {
             InitializeComponent();
+            random = new Random();
             InitializeGame();
             InitializeTimers();
         }
@@ -83,11 +87,17 @@ namespace Laba2_
             UpdateCooldownUI();
             UpdateActiveEffectsUI();
             UpdateBonusUI();
+            UpdateDamageMultiplierUI();
         }
 
         private void BonusSpawnTimer_Tick(object sender, EventArgs e)
         {
-            bonusController.SpawnRandomBonus();
+            // Спавним случайное количество бонусов (1-2)
+            int bonusCount = random.Next(1, 3);
+            for (int i = 0; i < bonusCount; i++)
+            {
+                bonusController.SpawnRandomBonus();
+            }
             UpdateBonusUI();
         }
 
@@ -109,7 +119,7 @@ namespace Laba2_
             }
             catch (Exception ex)
             {
-                
+                Debug.WriteLine($"Ошибка загрузки врагов: {ex.Message}");
                 CreateTestEnemies();
             }
         }
@@ -143,7 +153,10 @@ namespace Laba2_
                     {
                         enemyImage.Source = new BitmapImage(new Uri(imagePath));
                     }
-                   
+                    else
+                    {
+                        Debug.WriteLine($"Изображение не найдено: {imagePath}");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -167,6 +180,12 @@ namespace Laba2_
         private void UpdateCooldownUI()
         {
             cooldownText.Text = $"{player.CurrentCooldown:F1}s / {player.BaseCooldown:F1}s";
+        }
+
+        private void UpdateDamageMultiplierUI()
+        {
+            double multiplier = player.GetDamageMultiplier();
+            damageMultiplierText.Text = $"{multiplier:F2}x";
         }
 
         private void UpdateActiveEffectsUI()
@@ -226,11 +245,11 @@ namespace Laba2_
                     UpdateBonusUI();
                     UpdatePlayerUI();
                     UpdateActiveEffectsUI();
+                    UpdateDamageMultiplierUI();
                     e.Handled = true;
                 }
             }
         }
-
 
         private void UpdateEnemyUI()
         {
@@ -253,27 +272,30 @@ namespace Laba2_
         {
             if (currentEnemy != null && player.CanAttack())
             {
-                // Проверяем клик по бонусам
+                // Сначала проверяем клик по бонусам
                 Point mousePosition = e.GetPosition(gameCanvas);
 
-                // Проверяем клик по бонусам через контроллер
                 if (bonusController.CheckBonusClick(mousePosition, player))
                 {
                     UpdateBonusUI();
                     UpdatePlayerUI();
                     UpdateActiveEffectsUI();
+                    UpdateDamageMultiplierUI();
                     e.Handled = true;
                     return;
                 }
 
+                // Рассчитываем урон с учетом всех эффектов
+                double damageMultiplier = player.GetDamageMultiplier();
+                BigNumber actualDamage = baseDamage.Multiply(damageMultiplier);
+
                 // Атака врага
                 BigNumber reward;
-                bool isDefeated = currentEnemy.TakeDamage(baseDamage, out reward);
+                bool isDefeated = currentEnemy.TakeDamage(actualDamage, out reward);
 
                 if (isDefeated)
                 {
                     player.AddGold(reward);
-                   
                     SpawnNewEnemy();
                 }
 
@@ -281,12 +303,53 @@ namespace Laba2_
                 UpdateEnemyUI();
                 UpdatePlayerUI();
                 UpdateCooldownUI();
+                UpdateDamageMultiplierUI();
+
+                // Показываем нанесенный урон
+                ShowDamageText(actualDamage.ToString());
             }
             else if (!player.CanAttack())
             {
-                
+                MessageBox.Show($"Перезарядка: {player.CurrentCooldown:F1}с", "Подождите");
             }
         }
+
+        private void ShowDamageText(string damage)
+        {
+            // Создаем текстовый блок для отображения урона
+            TextBlock damageText = new TextBlock
+            {
+                Text = damage,
+                Foreground = Brushes.Red,
+                FontSize = 14,
+                FontWeight = FontWeights.Bold
+            };
+
+            // Размещаем на канвасе
+            Canvas.SetLeft(damageText, 60);
+            Canvas.SetTop(damageText, 60);
+            gameCanvas.Children.Add(damageText);
+
+            // Анимация исчезновения
+            var animation = new DoubleAnimation
+            {
+                To = 0,
+                Duration = TimeSpan.FromSeconds(1)
+            };
+
+            damageText.BeginAnimation(TextBlock.OpacityProperty, animation);
+
+            // Удаляем через 1 секунду
+            Task.Delay(1000).ContinueWith(_ =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    gameCanvas.Children.Remove(damageText);
+                });
+            });
+        }
+
+        // Методы обработчиков событий кнопок, которые были пропущены
 
         private void UpgradeDamage_Click(object sender, RoutedEventArgs e)
         {
@@ -298,6 +361,7 @@ namespace Laba2_
 
                 UpdatePlayerUI();
                 UpdateEnemyUI();
+                UpdateDamageMultiplierUI();
 
                 Debug.WriteLine($"After upgrade - BaseDamage: {baseDamage}, Player Level: {player.Level}");
             }
@@ -309,7 +373,6 @@ namespace Laba2_
             {
                 UpdatePlayerUI();
                 UpdateCooldownUI();
-                
             }
         }
 
@@ -327,55 +390,55 @@ namespace Laba2_
             bonusSpawnTimer.Start();
         }
 
-        // Остальные методы остаются без изменений...
-        private void LoadIcons() 
+        // Остальные методы...
+
+        private void LoadIcons()
         {
+            string[] iconNames = { "Sword", "Axe", "Bow", "Staff" };
+            Color[] colors = { Colors.Red, Colors.Blue, Colors.Green, Colors.Orange };
+
+            double x = 10;
+            double y = 10;
+
+            for (int i = 0; i < iconNames.Length; i++)
             {
-                string[] iconNames = { "Sword", "Axe", "Bow", "Staff" };
-                Color[] colors = { Colors.Red, Colors.Blue, Colors.Green, Colors.Orange };
-
-                double x = 10;
-                double y = 10;
-
-                for (int i = 0; i < iconNames.Length; i++)
+                Image img = new Image
                 {
-                    Image img = new Image
-                    {
-                        Width = 50,
-                        Height = 50,
-                        Source = new BitmapImage(new Uri("icons/Monsters")),
-                        Tag = iconNames[i]
-                    };
+                    Width = 50,
+                    Height = 50,
+                    Source = new BitmapImage(new Uri("icons/Monsters")),
+                    Tag = iconNames[i]
+                };
 
-                    Rectangle icon = new Rectangle
-                    {
-                        Width = 50,
-                        Height = 50,
-                        Fill = new SolidColorBrush(colors[i]),
-                        Stroke = Brushes.Black,
-                        StrokeThickness = 2,
-                        Tag = iconNames[i]
-                    };
+                Rectangle icon = new Rectangle
+                {
+                    Width = 50,
+                    Height = 50,
+                    Fill = new SolidColorBrush(colors[i]),
+                    Stroke = Brushes.Black,
+                    StrokeThickness = 2,
+                    Tag = iconNames[i]
+                };
 
-                    iniicon = new CIconList(50, 50, 4, 2);
-                    DisplayIcons();
+                iniicon = new CIconList(50, 50, 4, 2);
+                DisplayIcons();
 
-                    TextBlock text = new TextBlock
-                    {
-                        Text = iconNames[i],
-                        Foreground = Brushes.Black,
-                        FontSize = 10,
-                        Width = 50,
-                        TextAlignment = TextAlignment.Center
-                    };
+                TextBlock text = new TextBlock
+                {
+                    Text = iconNames[i],
+                    Foreground = Brushes.Black,
+                    FontSize = 10,
+                    Width = 50,
+                    TextAlignment = TextAlignment.Center
+                };
 
-                    Canvas.SetLeft(text, x);
-                    Canvas.SetTop(text, y + 55);
+                Canvas.SetLeft(text, x);
+                Canvas.SetTop(text, y + 55);
 
-                    x += 60;
-                }
+                x += 60;
             }
         }
+
         public void DisplayIcons()
         {
             var icons = iniicon.GetIcons();

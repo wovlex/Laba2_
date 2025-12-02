@@ -49,6 +49,8 @@
         <!-- Правая панель - игрок, улучшения и активные эффекты -->
         <StackPanel Grid.Column="2" HorizontalAlignment="Left" Margin="10">
             <TextBlock Text="Player Stats:" FontWeight="Bold" FontSize="14"/>
+            <TextBlock Text="Множитель урона:" FontWeight="Bold" Margin="0,5,0,0"/>
+            <TextBox x:Name="damageMultiplierText" Width="120" Height="25" Margin="0,5,0,10" IsReadOnly="True"/>
 
             <TextBlock Text="Gold:" FontWeight="Bold" Margin="0,10,0,0"/>
             <TextBox x:Name="playerGoldText" Width="120" Height="25" Margin="0,5,0,10" IsReadOnly="True"/>

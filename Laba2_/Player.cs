@@ -51,7 +51,7 @@ namespace Laba2_
             if (CanUpgradeCooldown())
             {
                 Gold = Gold - cooldownUpgradeCost;
-                BaseCooldown = Math.Max(0.1, BaseCooldown * 0.9); // Уменьшаем перезарядку на 10%
+                BaseCooldown = Math.Max(0.1, BaseCooldown * 0.9);
 
                 double newCost = cooldownUpgradeCost.ToDouble() * 1.5;
                 cooldownUpgradeCost = new BigNumber(((int)newCost).ToString());
@@ -85,7 +85,6 @@ namespace Laba2_
         {
             double actualCooldown = BaseCooldown;
 
-            // Применяем эффекты уменьшения перезарядки
             var cooldownEffects = activeEffects.Where(e => e.Type == EffectType.CooldownReduction);
             foreach (var effect in cooldownEffects)
             {
@@ -102,7 +101,6 @@ namespace Laba2_
                 CurrentCooldown = Math.Max(0, CurrentCooldown - deltaTime);
             }
 
-            // Обновляем эффекты
             for (int i = activeEffects.Count - 1; i >= 0; i--)
             {
                 activeEffects[i].Duration -= deltaTime;
@@ -157,7 +155,22 @@ namespace Laba2_
 
         public override string ToString()
         {
-            return $"{Name}: {Power * 100}% ({Duration:F1}s)";
+            string effectText = Name;
+
+            switch (Type)
+            {
+                case EffectType.DamageBoost:
+                    effectText = $"🔥 {Name}: +{Power * 100}% урона ({Duration:F1}с)";
+                    break;
+                case EffectType.CooldownReduction:
+                    effectText = $"⚡ {Name}: -{Power * 100}% кд ({Duration:F1}с)";
+                    break;
+                case EffectType.InstantGold:
+                    effectText = $"💰 {Name}";
+                    break;
+            }
+
+            return effectText;
         }
     }
 

@@ -30,7 +30,7 @@ namespace Laba2_
                 random.Next(10, (int)gameAreaSize.Height - 30)
             );
 
-            double size = random.Next(20, 35); // Увеличил размер для лучшей видимости
+            double size = random.Next(20, 35);
             double lifetime = random.Next(3, 8);
 
             Bonus bonus = null;
@@ -85,13 +85,11 @@ namespace Laba2_
             return activeBonuses;
         }
 
-        // Новый метод: удалить конкретный бонус
         public void RemoveBonus(Bonus bonus)
         {
             activeBonuses.Remove(bonus);
         }
 
-        // Новый метод: получить все активные бонусы для отладки
         public int GetBonusCount()
         {
             return activeBonuses.Count;
@@ -122,7 +120,6 @@ namespace Laba2_
             sprite.Height = size;
             sprite.Cursor = System.Windows.Input.Cursors.Hand;
 
-            // Устанавливаем позицию через Canvas свойства
             Canvas.SetLeft(sprite, position.X);
             Canvas.SetTop(sprite, position.Y);
         }
@@ -135,18 +132,19 @@ namespace Laba2_
 
         public virtual bool IsMouseOver(Point mousePosition)
         {
-            // Проверяем попадание в круг
             double centerX = position.X + size / 2;
             double centerY = position.Y + size / 2;
             double radius = size / 2;
 
             double distance = Math.Sqrt(Math.Pow(mousePosition.X - centerX, 2) +
-                                        Math.Pow(mousePosition.Y - centerY, 2));
+                                      Math.Pow(mousePosition.Y - centerY, 2));
 
             return distance <= radius;
         }
 
         public abstract void ApplyEffect(Player player);
+
+        public abstract string GetBonusInfo();
 
         public Ellipse GetSprite()
         {
@@ -169,18 +167,22 @@ namespace Laba2_
         public DamageBonus(Point position, double size, double lifetime)
             : base(position, size, lifetime)
         {
-            sprite.Fill = new SolidColorBrush(Color.FromArgb(255, 255, 100, 100)); // Красный
+            sprite.Fill = new SolidColorBrush(Color.FromArgb(255, 255, 100, 100));
         }
 
         public override void ApplyEffect(Player player)
         {
             player.AddEffect(new PlayerEffect(
                 EffectType.DamageBoost,
-                0.5, // +50% урона
-                10.0, // 10 секунд
+                0.5,
+                10.0,
                 "Усиление урона"
             ));
-           
+        }
+
+        public override string GetBonusInfo()
+        {
+            return $"Бонус урона: +50% урона на 10 сек";
         }
     }
 
@@ -189,18 +191,22 @@ namespace Laba2_
         public CooldownBonus(Point position, double size, double lifetime)
             : base(position, size, lifetime)
         {
-            sprite.Fill = new SolidColorBrush(Color.FromArgb(255, 100, 100, 255)); // Синий
+            sprite.Fill = new SolidColorBrush(Color.FromArgb(255, 100, 100, 255));
         }
 
         public override void ApplyEffect(Player player)
         {
             player.AddEffect(new PlayerEffect(
                 EffectType.CooldownReduction,
-                0.3, // -30% перезарядки
-                8.0, // 8 секунд
+                0.3,
+                8.0,
                 "Ускорение атаки"
             ));
-           
+        }
+
+        public override string GetBonusInfo()
+        {
+            return $"Бонус перезарядки: -30% кд на 8 сек";
         }
     }
 
@@ -209,21 +215,24 @@ namespace Laba2_
         public GoldBonus(Point position, double size, double lifetime)
             : base(position, size, lifetime)
         {
-            sprite.Fill = new SolidColorBrush(Color.FromArgb(255, 255, 215, 0)); // Золотой
+            sprite.Fill = new SolidColorBrush(Color.FromArgb(255, 255, 215, 0));
         }
 
         public override void ApplyEffect(Player player)
         {
+            player.AddGold(new BigNumber("50"));
+
             player.AddEffect(new PlayerEffect(
                 EffectType.InstantGold,
                 0,
                 0,
-                "Бонусное золото"
+                "Бонусное золото: +50"
             ));
+        }
 
-            // Мгновенное добавление золота
-            player.AddGold(new BigNumber("50"));
-            
+        public override string GetBonusInfo()
+        {
+            return $"Бонус золота: +50 монет";
         }
     }
 }
