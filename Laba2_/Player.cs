@@ -168,6 +168,7 @@ namespace Laba2_
                 case EffectType.InstantGold:
                     effectText = $"💰 {Name}";
                     break;
+
             }
 
             return effectText;
