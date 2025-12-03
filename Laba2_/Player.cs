@@ -160,13 +160,13 @@ namespace Laba2_
             switch (Type)
             {
                 case EffectType.DamageBoost:
-                    effectText = $"🔥 {Name}: +{Power * 100}% урона ({Duration:F1}с)";
+                    effectText = $" {Name}: +{Power * 100}% урона ({Duration:F1}с)";
                     break;
                 case EffectType.CooldownReduction:
-                    effectText = $"⚡ {Name}: -{Power * 100}% кд ({Duration:F1}с)";
+                    effectText = $" {Name}: -{Power * 100}% кд ({Duration:F1}с)";
                     break;
                 case EffectType.InstantGold:
-                    effectText = $"💰 {Name}";
+                    effectText = $" {Name}";
                     break;
 
             }

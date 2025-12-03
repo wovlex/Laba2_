@@ -44,18 +44,19 @@ namespace Laba2_
 
         private void InitializeGame()
         {
-            // Инициализация игрока
+            
             player = new Player();
             baseDamage = new BigNumber("50");
 
-            // Загрузка врагов из JSON
+            
             enemyManager = new EnemyManager();
             LoadEnemies();
 
-            // Инициализация контроллера бонусов
+
+    
             bonusController = new BonusController(new System.Windows.Size(160, 160));
 
-            // Обновление интерфейса
+           
             UpdatePlayerUI();
             SpawnNewEnemy();
         }
@@ -80,10 +81,10 @@ namespace Laba2_
             // Обновление перезарядки игрока
             player.UpdateCooldown(0.1);
 
-            // Обновление бонусов
+           
             bonusController.Update(0.1);
 
-            // Обновление UI
+            
             UpdateCooldownUI();
             UpdateActiveEffectsUI();
             UpdateBonusUI();
@@ -92,7 +93,7 @@ namespace Laba2_
 
         private void BonusSpawnTimer_Tick(object sender, EventArgs e)
         {
-            // Спавним случайное количество бонусов (1-2)
+           
             int bonusCount = random.Next(1, 3);
             for (int i = 0; i < bonusCount; i++)
             {
@@ -220,11 +221,11 @@ namespace Laba2_
                 var ellipse = bonus.GetSprite();
                 if (ellipse != null)
                 {
-                    // Устанавливаем позицию
+                   
                     Canvas.SetLeft(ellipse, bonus.GetPosition().X);
                     Canvas.SetTop(ellipse, bonus.GetPosition().Y);
 
-                    // Добавляем обработчик клика (через Tag)
+             
                     ellipse.Tag = bonus;
                     ellipse.MouseDown += Bonus_MouseDown;
 
@@ -305,7 +306,7 @@ namespace Laba2_
                 UpdateCooldownUI();
                 UpdateDamageMultiplierUI();
 
-                // Показываем нанесенный урон
+              
                 ShowDamageText(actualDamage.ToString());
             }
             else if (!player.CanAttack())
@@ -349,7 +350,7 @@ namespace Laba2_
             });
         }
 
-        // Методы обработчиков событий кнопок, которые были пропущены
+     
 
         private void UpgradeDamage_Click(object sender, RoutedEventArgs e)
         {
@@ -390,7 +391,7 @@ namespace Laba2_
             bonusSpawnTimer.Start();
         }
 
-        // Остальные методы...
+     
 
         private void LoadIcons()
         {

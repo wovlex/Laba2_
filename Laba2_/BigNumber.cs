@@ -132,7 +132,7 @@ namespace Laba2_
 
         public BigNumber Multiply(double multiplier)
         {
-            // Преобразуем в double, умножаем и создаем новый BigNumber
+           
             double value = this.ToDouble() * multiplier;
             return new BigNumber(((long)value).ToString());
         }

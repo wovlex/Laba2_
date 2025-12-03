@@ -191,7 +191,7 @@ namespace Laba2_
         public CooldownBonus(Point position, double size, double lifetime)
             : base(position, size, lifetime)
         {
-            sprite.Fill = new SolidColorBrush(Color.FromArgb(255, 100, 100, 255));
+            sprite.Fill = new SolidColorBrush(Color.FromArgb(255, 100, 100, 0));
         }
 
         public override void ApplyEffect(Player player)
@@ -215,7 +215,7 @@ namespace Laba2_
         public GoldBonus(Point position, double size, double lifetime)
             : base(position, size, lifetime)
         {
-            sprite.Fill = new SolidColorBrush(Color.FromArgb(255, 255, 215, 0));
+            sprite.Fill = new SolidColorBrush(Color.FromArgb(255, 255, 215, 250));
         }
 
         public override void ApplyEffect(Player player)
